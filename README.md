@@ -1,6 +1,6 @@
 # Tharcharbu Puthagam
 
-A field guide to plants, trees, insects, birds and animals, with Tamil, Kannada and Malayalam names.
+A field guide to plants, trees, insects, birds and animals.
 
 ```
 backend/          Express API, runs on Lambda (local: npm run dev)
