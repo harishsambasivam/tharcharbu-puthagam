@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+/* Tamil mode: wide letter-spacing pulls Tamil letters apart, so labels use `ta:` to tighten it. */
+@custom-variant ta (&:where(:lang(ta), :lang(ta) *));
+/* Laptop-height screens, where the detail page's first screen needs tighter tiles. */
+@custom-variant short (@media (max-height: 860px));
+@custom-variant shorter (@media (max-height: 760px));
+
+/* Palette: every colour token flips between light and dark here, so components never need dark: variants. */
+:root {
+  --paper: #f8f8f3;
+  --card: #ffffff;
+  --ink: #1d211b;
+  --ink-2: #5c6157;
+  --ink-3: #8b8f84;
+  --line: #dcddd2;
+  --moss: #2e4a1e;
+  --bar: #1d211b;
+  --stripe-a: #edeee5;
+  --stripe-b: #e5e7db;
+}
+.dark {
+  --paper: #1b1f1a;
+  --card: #212620;
+  --ink: #e9ebe3;
+  --ink-2: #a8ad9f;
+  --ink-3: #7d8278;
+  --line: #383d35;
+  --moss: #d8e87b;
+  --bar: #11140f;
+  --stripe-a: #272c25;
+  --stripe-b: #222620;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-moss: var(--moss);
+  --color-bar: var(--bar);
+}
+
+@theme {
+  --color-lime: #d9e87b;
+  --color-onlime: #1d211b;
+  --color-rose: #f3cdbf;
+  --color-onrose: #7a2e1e;
+  --color-amber: #ebcb78;
+  --font-serif: 'Newsreader', 'Mukta Malar', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', 'Noto Sans Tamil', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+}
+
+/* IBM Plex Mono has no Tamil letters and its wide spaces pull Tamil words apart, so Tamil labels use the sans face. */
+:lang(ta) .font-mono,
+.font-mono:lang(ta) {
+  font-family: var(--font-sans);
+}
+
+.stripes {
+  background: repeating-linear-gradient(135deg, var(--stripe-a) 0 16px, var(--stripe-b) 16px 32px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
