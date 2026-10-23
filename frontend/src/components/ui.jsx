@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Check, ChevronDown, Image as ImageIcon } from 'lucide-react'
 import { mediaUrl } from '../api/client'
 import { useApp } from '../store/useApp'
@@ -31,7 +32,7 @@ export const Badge = ({ tone = 'lime', className, children }) => (
 export const DraftBadge = () => <Badge className="bg-amber! py-0">{useApp((s) => s.lang) === 'ta' ? 'வரைவு' : 'Draft'}</Badge>
 
 export const RoundButton = ({ className, ...props }) => (
-  <button type="button" className={cx('grid size-10 place-items-center rounded-full border border-line text-ink transition hover:border-ink-3', className)} {...props} />
+  <button type="button" className={cx('grid size-8 place-items-center rounded-full border border-line text-ink transition hover:border-ink-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-moss', className)} {...props} />
 )
 
 const BUTTONS = {
@@ -139,6 +140,29 @@ export function Select({ value, onChange, options, placeholder = '—', render =
         </div>
       )}
     </Popover>
+  )
+}
+
+// A dialog over a dimmed page: centred on desktop, a sheet from the bottom on phones.
+// Escape or a click outside closes it, and the page behind does not scroll while it is open.
+export function Modal({ onClose, label, className, children }) {
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose()
+    const overflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = overflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/40 sm:items-center sm:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-label={label} className={cx('max-h-[90vh] w-full overflow-y-auto rounded-t-xl border border-line bg-paper shadow-2xl sm:max-w-lg sm:rounded-md', className)}>
+        {children}
+      </div>
+    </div>,
+    document.body,
   )
 }
 

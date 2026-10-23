@@ -1,6 +1,7 @@
 import { Check, ChevronDown, Search, SlidersHorizontal } from 'lucide-react'
 import { Kicker, Popover, cx } from '../../components/ui'
 import { useT } from '../../config/i18n'
+import { KINDS } from '../../config/kinds'
 
 export function SearchBox({ value, onChange, className }) {
   const t = useT()
@@ -121,5 +122,31 @@ export function MoreFilters({ defs, filters, setFilters }) {
         </div>
       )}
     </Popover>
+  )
+}
+
+// All / Plants / Trees: narrows a group's table to one kind.
+export function KindChips({ group, kind, setKind, className }) {
+  const t = useT()
+  const chip = (value, label, Icon) => (
+    <button
+      key={value || 'all'}
+      type="button"
+      onClick={() => setKind(value)}
+      aria-pressed={kind === value}
+      className={cx(
+        'flex h-10 shrink-0 items-center gap-2 rounded-[4px] px-4 text-[15px] whitespace-nowrap',
+        kind === value ? 'bg-ink font-semibold text-paper' : 'border border-line bg-card text-ink hover:border-ink-3',
+      )}
+    >
+      {Icon && <Icon className="size-4" strokeWidth={1.7} />}
+      {t(label)}
+    </button>
+  )
+  return (
+    <div className={cx('flex gap-2', className)}>
+      {chip(null, 'All')}
+      {group.kinds.map((r) => chip(r, KINDS[r].label, KINDS[r].Icon))}
+    </div>
   )
 }

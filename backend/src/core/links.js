@@ -3,14 +3,17 @@ import { UpdateCommand } from '@aws-sdk/lib-dynamodb'
 import { db, table, getRaw } from './db.js'
 import { HttpError } from './http.js'
 
-// Every link is written on both items, so it shows on both pages. A link is only `{ kind, id }`;
-// the frontend fills in names and photos from the catalog.
-const OPPOSITE = { harms: 'harmedBy', harmedBy: 'harms', helps: 'helpedBy', helpedBy: 'helps' }
+// Every link is written on both items, so it shows on both pages. A link is `{ kind, id }`, plus for
+// companions a `note` on how the two help each other; the frontend fills in names and photos from the catalog.
+// Companions go both ways, so the same link and note sit on both plants.
+const OPPOSITE = { harms: 'harmedBy', harmedBy: 'harms', helps: 'helpedBy', helpedBy: 'helps', companions: 'companions' }
 export const KINDS = ['plant', 'tree', 'insect', 'bird', 'animal']
-export const emptyLinks = () => ({ harms: [], harmedBy: [], helps: [], helpedBy: [] })
+const FLORA = ['plant', 'tree']
+export const emptyLinks = () => ({ harms: [], harmedBy: [], helps: [], helpedBy: [], companions: [] })
 
 const ref = z.object({ kind: z.enum(KINDS), id: z.string().min(1).max(40) })
-const linkInput = z.object({ rel: z.enum(Object.keys(OPPOSITE)), target: ref })
+const note = z.object({ en: z.string().trim().max(600).default(''), ta: z.string().trim().max(600).default('') })
+const linkInput = z.object({ rel: z.enum(Object.keys(OPPOSITE)), target: ref, note: note.optional() })
 
 const without = (list = [], { kind, id }) => list.filter((l) => !(l.kind === kind && l.id === id))
 export const linksOf = (item) => ({ ...emptyLinks(), ...item.links })
@@ -32,12 +35,16 @@ async function loadPair(kind, id, target) {
 }
 
 export async function addLink(kind, id, body) {
-  const { rel, target } = linkInput.parse(body)
+  const { rel, target, note } = linkInput.parse(body)
+  if (rel === 'companions' && !(FLORA.includes(kind) && FLORA.includes(target.kind)))
+    throw new HttpError(400, 'Companions are plants or trees')
   const [a, b] = await loadPair(kind, id, target)
   const la = linksOf(a)
   const lb = linksOf(b)
-  la[rel] = [...without(la[rel], target), target]
-  lb[OPPOSITE[rel]] = [...without(lb[OPPOSITE[rel]], { kind, id }), { kind, id }]
+  // Adding a link that is already there replaces it, which is how a companion's note is edited.
+  const extra = rel === 'companions' ? { note: note || { en: '', ta: '' } } : {}
+  la[rel] = [...without(la[rel], target), { ...target, ...extra }]
+  lb[OPPOSITE[rel]] = [...without(lb[OPPOSITE[rel]], { kind, id }), { kind, id, ...extra }]
   await Promise.all([saveLinks(a, la), saveLinks(b, lb)])
 }
 

@@ -58,6 +58,70 @@ export const hasKeyIcon = (name) => name in KEY_PATHS
 
 export const KeyIcon = ({ name, className }) => <Svg className={className}>{KEY_PATHS[name]}</Svg>
 
+// Icons for the monthly observances in the calendar. Ones without an icon show as a dot.
+const VILVA = 'M12 13.6c-2.9-1.9-3.8-7.4 0-11.2 3.8 3.8 2.9 9.3 0 11.2z'
+const SIDE_LEAVES = ['rotate(-70 12 14) translate(0 1)', 'rotate(70 12 14) translate(0 1)']
+const OBSERVANCE_PATHS = {
+  // Murugan's peacock, its tail fanned behind it.
+  sashti: (
+    <>
+      <path d="M2.8 17A2.5 2.5 0 0 1 4 12.4a2.5 2.5 0 0 1 3.4-3.4 2.5 2.5 0 0 1 4.6-1.2 2.5 2.5 0 0 1 4.6 1.2 2.5 2.5 0 0 1 3.4 3.4 2.5 2.5 0 0 1 1.2 4.6M2.8 17h6.4m5.6 0h6.4" />
+      {[[6.2, 14.9], [8.3, 11.8], [15.7, 11.8], [17.8, 14.9]].map(([x, y]) => (
+        <circle key={x} cx={x} cy={y} r="1" fill="currentColor" stroke="none" />
+      ))}
+      <path d="M12 10.1c.9 0 1.5.8 1.2 1.7l-.5 2.3c1.6.6 2.6 2 2.6 3.6 0 1.3-.7 2.3-1.8 2.8h-3c-1.1-.5-1.8-1.5-1.8-2.8 0-1.6 1-3 2.6-3.6l-.5-2.3c-.3-.9.3-1.7 1.2-1.7z" />
+      <path d="m10.9 11.2-1 .5 1 .3M12 10.1 11.1 8.4M12 10V8.1m0 2 .9-1.7m-1.7 12.3v2m1.6-2v2" />
+    </>
+  ),
+  // Pillaiyar's elephant.
+  chathurthi: (
+    <>
+      <path d="M20.5 9.2C19.6 6.6 17.2 5 14.3 5H11c-1.4 0-2.6.4-3.6 1.1-2 .2-3.6 1.8-3.6 4v4.5c0 1-.5 1.4-1.2 1.2 0 1.5 1 2.2 1.9 2 1-.2 1.5-1 1.5-2.2V13c.5.4 1.1.6 1.8.6V19h2.8v-2.7H15V19h2.8v-3.4c1-.6 1.7-1.3 2.1-2.2.6-1.4.6-2.9.1-4.2" />
+      <path d="M9.4 7.2c-1.7.5-2.2 2.8-1.3 4.5.8 1.4 2.6 1.4 3.3.2M6.4 12.4c.9.9 2 1.1 3 .7" />
+      <circle cx="5.8" cy="9.3" r=".5" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // Vishnu's conch.
+  ekadasi: (
+    <>
+      <path d="m12 1.6 1.4 2.3 2.1.6.9 2c2.3 1.7 3.3 4.5 2.7 7.5-.6 3-2.8 5.4-5.4 6.6l-1 2h-1.4l-1-2C7.7 19.4 5.5 17 4.9 14c-.6-3 .4-5.8 2.7-7.5l.9-2 2.1-.6zM8.4 6.6h7.2m.2 2.2c-2.7 2.6-3.3 7.8-1.5 11.4" />
+      <path d="M7 11c1.7.8 3.6 1.1 5.3 1m-5.7 2.6c1.9.9 3.9 1.2 5.6 1" strokeWidth="1.1" />
+    </>
+  ),
+  // Siva's three-leafed vilvam.
+  pradosham: (
+    <>
+      {['', ...SIDE_LEAVES].map((t) => (
+        <g key={t} transform={t || undefined}>
+          <path d={VILVA} />
+          <path d="M12 12.4V6" strokeWidth="1" />
+        </g>
+      ))}
+      <path d="M12 13.6V22" />
+    </>
+  ),
+  // The lingam on its pedestal, with the three lines of holy ash.
+  sivaratri: (
+    <>
+      <path d="M8.8 12.6V7.8a3.2 3.2 0 0 1 6.4 0v4.8M4 12.6h14.2l3 1.5c.7.4.5 1.4-.3 1.4H18M5.2 12.6v2.6c0 .9.7 1.5 1.5 1.5h10c.8 0 1.5-.6 1.5-1.5v-2.6M7.2 16.7v2.5h9.6v-2.5M5.4 21.6h13.2l-1.8-2.4H7.2z" />
+      <path d="M10.4 7.4h3.2M10.4 9h3.2m-3.2 1.6h3.2" strokeWidth="1" />
+      <circle cx="12" cy="5.8" r=".45" fill="currentColor" stroke="none" />
+    </>
+  ),
+}
+// Sankatahara Chathurthi and the waxing-moon Pradosham are the same marks in gold.
+OBSERVANCE_PATHS.sankatahara = OBSERVANCE_PATHS.chathurthi
+OBSERVANCE_PATHS.valarpradosham = OBSERVANCE_PATHS.pradosham
+const GOLD = ['sankatahara', 'valarpradosham']
+
+export const hasObservanceIcon = (name) => name in OBSERVANCE_PATHS
+
+export const ObservanceIcon = ({ name, className = 'size-5' }) => (
+  <Svg className={GOLD.includes(name) ? `${className} text-[#c9952b]` : className} strokeWidth={1.5}>
+    {OBSERVANCE_PATHS[name]}
+  </Svg>
+)
+
 // Five notched petals around a stamened centre. Pass several colours and the petals take turns.
 const PETAL = 'M12 11.6C9.2 9.8 8.1 6.1 9.4 3.9c.7-1.2 1.9-1.1 2.6 0 .7-1.1 1.9-1.2 2.6 0 1.3 2.2.2 5.9-2.6 7.7Z'
 export const FlowerIcon = ({ colour = '#ffffff', className }) => {
@@ -77,3 +141,12 @@ export const FlowerIcon = ({ colour = '#ffffff', className }) => {
     </svg>
   )
 }
+
+// The site's mark: a rooted sprout inside a closing loop, for growing your own in a cycle that feeds itself.
+export const Logo = ({ className = 'size-7' }) => (
+  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden>
+    <path d="M27.3 9.5A13 13 0 1 1 22.5 4.7M18.9 5l3.6-.3-1.6-3.2" />
+    <path d="M16 22.5V14M16 17.5c0-3.5-2.4-5.5-6-5.5 0 3.5 2.4 5.5 6 5.5ZM16 14.5c0-3 2-4.8 5-4.8 0 3-2 4.8-5 4.8Z" />
+    <path d="M10.5 22.5h11M16 22.5l-2 2.5M16 22.5l2 2.5" />
+  </svg>
+)

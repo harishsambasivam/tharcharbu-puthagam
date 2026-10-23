@@ -20,8 +20,8 @@ export function filtersFor(cfg, admin, lists = new Map(), label = (o) => o.en) {
     return (min ?? max) !== null && (min ?? max) <= hi && (max ?? min) >= lo
   }
   return [
-    { key: 'seasons', label: 'Season', options: SEASONS.map((s) => [s.id, s.name]), test: has('seasons') },
-    { key: 'lands', label: 'Land', options: LANDS.map((l) => [l.id, l.name]), test: has('lands') },
+    { key: 'seasons', label: cfg.seasonLabel, options: SEASONS.map((s) => [s.id, s.name]), test: has('seasons') },
+    { key: 'lands', label: cfg.landLabel, options: LANDS.map((l) => [l.id, l.name]), test: has('lands') },
     ...cfg.stats.filter((s) => s.range).map((s) => ({ key: s.key, label: s.label, options: DAY_BUCKETS.map(([id, label]) => [id, label]), test: overlaps(s.key) })),
     { key: choice.key, label: choice.label, options: choice.options.map((o) => [o, o]), test: pick(choice.key) },
     admin && { key: 'status', label: 'Status', options: [['published', 'Published'], ['draft', 'Draft']], test: pick('status') },
@@ -53,18 +53,25 @@ export function applyFilters(items, defs, q, filters) {
   )
 }
 
-export function columnsFor(cfg) {
+// `withKind` adds a Kind column, for a group's "All" table.
+export function columnsFor(cfg, withKind) {
   const main = [
-    { id: 'seasons', label: cfg.flora ? 'Season' : cfg.seasonLabel, type: 'seasons' },
+    withKind && { id: 'kind', label: 'Kind', type: 'kind' },
+    { id: 'seasons', label: cfg.seasonLabel, type: 'seasons' },
     { id: 'lands', label: cfg.landLabel, type: 'lands' },
     ...cfg.stats.map((s) => ({ id: s.key, label: s.label, type: s.options ? 'pill' : s.range ? 'stat' : 'text', stat: s })),
     { id: 'family', label: 'Family', type: 'text' },
     { id: 'scientific', label: 'Scientific name', type: 'italic' },
-  ].map((c) => ({ ...c, group: 'Main', get: (i) => i[c.id] }))
+  ]
+    .filter(Boolean)
+    .map((c) => ({ ...c, group: 'Main', get: (i) => i[c.id] }))
   const traits = cfg.traits.flatMap((t) =>
     t.fields.map((f) => ({ id: `${t.key}.${f.key}`, label: f.label, group: t.label, type: 'text', get: (i) => i[t.key]?.[f.key] })),
   )
   return [...main, ...traits]
 }
 
-export const defaultColumns = (cfg) => columnsFor(cfg).filter((c) => c.group === 'Main').map((c) => c.id)
+export const defaultColumns = (cfg, withKind) =>
+  columnsFor(cfg, withKind)
+    .filter((c) => c.group === 'Main')
+    .map((c) => c.id)

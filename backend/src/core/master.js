@@ -63,9 +63,6 @@ export const LISTS = [
       ['biennial', 'Biennial', 'ஈராண்டு'],
       ['short-lived', 'Short-lived perennial', 'குறுகிய பல்லாண்டு', ['short-lived']],
       ['perennial', 'Perennial', 'பல்லாண்டு'],
-      ['evergreen', 'Evergreen', 'பசுமைமாறா'],
-      ['deciduous', 'Deciduous', 'இலையுதிர்'],
-      ['brevideciduous', 'Brevideciduous', 'சிறிது காலம் இலையுதிர்'],
     ],
   },
   {
@@ -147,6 +144,15 @@ export const LISTS = [
       ['pinnate', 'Pinnate', 'சிறகுக் கூட்டிலை', ['pinnately', 'tripinnate', 'bipinnate']],
       ['digitate', 'Palmate', 'அங்கைக் கூட்டிலை', ['palmate', 'digitate', 'trifoliate', 'three leaflets']],
       ['palm', 'Palm fronds', 'ஓலை', ['frond', 'fan-shaped']],
+    ],
+  },
+  {
+    key: 'foliage', label: 'Leaf fall',
+    fields: { plant: ['leaf.foliage'], tree: ['leaf.foliage'] },
+    options: [
+      ['evergreen', 'Evergreen', 'பசுமைமாறா', ['ever-green']],
+      ['deciduous', 'Deciduous', 'இலையுதிர்', ['sheds its leaves', 'leafless']],
+      ['brevideciduous', 'Briefly deciduous', 'சிறிது காலம் இலையுதிர்', ['brevideciduous', 'briefly']],
     ],
   },
   {
@@ -350,8 +356,9 @@ export function optionsIn(text, options) {
   return [...new Set(taken.sort((a, b) => a.span[0] - b.span[0]).map((t) => t.id))]
 }
 
-// Old key-strip values carried over, as list key -> option ids.
-const KEY_STRIP = { habit: 'lifeCycle', leafType: 'leafStyle', arrangement: 'arrangement' }
+// Old key-strip values carried over: which lists each key.* value may tag. key.habit held both life
+// cycle ("annual") and leaf fall ("evergreen"); only the list that has the option takes it.
+const KEY_STRIP = { habit: ['lifeCycle', 'foliage'], leafType: ['leafStyle'], arrangement: ['arrangement'] }
 
 // Tags for one item of `kind`, from its English and Tamil text and any old key strip. Rows that already
 // have tags keep them unless `overwrite`.
@@ -364,7 +371,7 @@ export function tagsFor(kind, data, lists, { overwrite = false } = {}) {
       // The English decides; the Tamil only when the English names nothing, as it often says a little more.
       let ids = optionsIn(data.en?.[group]?.[field], list.options)
       if (!ids.length) ids = optionsIn(data.ta?.[group]?.[field], list.options)
-      const keyed = Object.entries(KEY_STRIP).find(([, key]) => key === list.key)?.[0]
+      const keyed = Object.entries(KEY_STRIP).find(([, keys]) => keys.includes(list.key))?.[0]
       if (keyed && data.key?.[keyed] && !ids.includes(data.key[keyed])) ids = [data.key[keyed], ...ids]
       if (path === 'flower.colour' && !ids.length && data.key?.flowerName) ids = optionsIn(data.key.flowerName, list.options)
       ids = ids.filter((id) => list.options.some((o) => o.id === id))

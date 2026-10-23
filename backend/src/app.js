@@ -10,6 +10,7 @@ import trees from './trees/tree.controller.js'
 import insects from './insects/insect.controller.js'
 import birds from './birds/bird.controller.js'
 import animals from './animals/animal.controller.js'
+import articles from './articles/article.controller.js'
 
 const app = express()
 app.disable('x-powered-by')
@@ -25,6 +26,7 @@ app.use('/api/trees', trees)
 app.use('/api/insects', insects)
 app.use('/api/birds', birds)
 app.use('/api/animals', animals)
+app.use('/api/articles', articles)
 
 app.use(errorHandler)
 

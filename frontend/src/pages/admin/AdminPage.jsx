@@ -1,3 +1,4 @@
+import { Logo } from '../../components/Icons'
 import { Link } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -25,7 +26,8 @@ export default function AdminPage() {
   return (
     <main className="grid min-h-screen place-items-center px-4">
       <Card className="w-full max-w-sm p-8">
-        <Link to="/plants" className="font-serif text-[24px]">
+        <Link to="/" className="flex items-center gap-2.5 font-serif text-[24px]">
+          <Logo className="size-8 shrink-0 text-moss" />
           Tharcharbu Puthagam
         </Link>
         <Kicker className="mt-6">Editors</Kicker>
@@ -33,8 +35,8 @@ export default function AdminPage() {
           <div className="mt-4 space-y-4">
             <p className="text-[15px] text-ink-2">You are signed in. Drafts and edit buttons are now visible.</p>
             <div className="flex gap-2">
-              <Link to="/plants" className="rounded-[4px] bg-ink px-4 py-2 text-[14px] font-semibold text-paper">
-                Go to plants
+              <Link to="/" className="rounded-[4px] bg-ink px-4 py-2 text-[14px] font-semibold text-paper">
+                Go to the site
               </Link>
               <Link to="/admin/lists" className="rounded-[4px] border border-ink px-4 py-2 text-[14px] font-semibold">
                 Master lists

@@ -35,5 +35,6 @@ export const view = (item, admin) => ({
   status: item.status,
   dirty: item.dirty,
   createdAt: item.createdAt,
+  publishedAt: item.publishedAt,
   ...(admin ? item.data : item.live),
 })

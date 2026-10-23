@@ -133,12 +133,16 @@ export function Stats({ cfg, item, big }) {
   const t = useT()
   const stats = cfg.stats.filter((s) => statText(s, item, t))
   if (!stats.length) return null
+  const three = stats.length === 3
   return (
-    <div className={cx('grid gap-2', stats.length === 3 ? 'grid-cols-3' : 'grid-cols-2')}>
+    <div className={cx('grid gap-2', three ? 'grid-cols-3' : 'grid-cols-2')}>
       {stats.map((s) => (
-        <div key={s.key} className={cx('rounded-md px-3.5 py-3 short:py-2', s.toned ? cx(PILL_TONES[item[s.key]], 'text-onlime') : 'border border-line bg-card')}>
+        <div key={s.key} className={cx('min-w-0 rounded-md py-3 short:py-2', three && big ? 'px-3' : 'px-3.5', s.toned ? cx(PILL_TONES[item[s.key]], 'text-onlime') : 'border border-line bg-card')}>
           <Label className={cx('text-[10px]! ta:text-[12px]!', s.toned && 'text-onlime/80')}>{t(s.label)}</Label>
-          <div className={cx('mt-1 font-serif leading-tight', big ? 'text-[24px]' : 'text-[21px]')}>{statText(s, item, t)}</div>
+          {/* Tamil words run long, so three across on a phone takes a smaller size; a word that still does not fit wraps. */}
+          <div className={cx('mt-1 font-serif leading-tight [overflow-wrap:anywhere]', big ? (three ? 'text-[24px] ta:text-[17px]' : 'text-[24px] ta:text-[20px]') : 'text-[21px] ta:text-[18px]')}>
+            {statText(s, item, t)}
+          </div>
         </div>
       ))}
     </div>

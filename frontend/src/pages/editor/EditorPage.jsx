@@ -1,10 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { FormProvider, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useQueryClient } from '@tanstack/react-query'
 import { Eye, EyeOff } from 'lucide-react'
-import { api, errorText } from '../../api/client'
 import { useItem } from '../../api/queries'
 import { useKind } from '../../hooks/useKind'
 import { KINDS } from '../../config/kinds'
@@ -15,9 +12,8 @@ import { publishSchema, toForm } from './form'
 import EditorBar from './EditorBar'
 import PhotoUploader from './PhotoUploader'
 import LinksEditor from './LinksEditor'
+import { useDraft } from './useDraft'
 import { ArticleField, FieldError, GroupField, LifeCycleField, NamesField, NotesFields, StatField, TamilNamesField, TraitFields } from './Fields'
-
-const SAVE_DELAY = 700
 
 export default function EditorPage() {
   const cfg = useKind()
@@ -29,89 +25,8 @@ export default function EditorPage() {
 }
 
 function Editor({ cfg, item }) {
-  const navigate = useNavigate()
-  const qc = useQueryClient()
   const form = useForm({ defaultValues: toForm(cfg, item), resolver: zodResolver(publishSchema(cfg)) })
-  const [meta, setMeta] = useState({ id: item?.id, status: item?.status || 'draft', dirty: item?.dirty ?? true })
-  const [saveState, setSaveState] = useState(item ? 'saved' : 'idle')
-  const [error, setError] = useState('')
-  const idRef = useRef(item?.id)
-  const creating = useRef(null)
-  const pending = useRef(null)
-  const timer = useRef()
-
-  // New items are created on the first change, then edited in place.
-  function ensureId() {
-    if (idRef.current) return Promise.resolve(idRef.current)
-    creating.current ??= api.post(`/${cfg.route}`, form.getValues()).then((created) => {
-      idRef.current = created.id
-      qc.setQueryData([cfg.route, created.id, true], created)
-      setMeta((m) => ({ ...m, id: created.id }))
-      navigate(`/${cfg.route}/${created.id}/edit`, { replace: true })
-      return created.id
-    })
-    return creating.current
-  }
-
-  async function flush() {
-    clearTimeout(timer.current)
-    const data = pending.current
-    if (!data) return
-    pending.current = null
-    setSaveState('saving')
-    try {
-      const id = await ensureId()
-      await api.put(`/${cfg.route}/${id}`, data)
-      setMeta((m) => ({ ...m, dirty: true }))
-      setSaveState('saved')
-    } catch (err) {
-      pending.current ??= data
-      setSaveState('error')
-      setError(errorText(err))
-    }
-  }
-
-  useEffect(() => {
-    const sub = form.watch((values) => {
-      pending.current = values
-      clearTimeout(timer.current)
-      timer.current = setTimeout(flush, SAVE_DELAY)
-    })
-    return () => {
-      sub.unsubscribe()
-      flush().then(() => qc.invalidateQueries({ queryKey: [cfg.route] }))
-    }
-  }, [])
-
-  const publish = form.handleSubmit(async () => {
-    setError('')
-    try {
-      await flush()
-      const id = await ensureId()
-      await api.post(`/${cfg.route}/${id}/publish`)
-      setMeta((m) => ({ ...m, status: 'published', dirty: false }))
-      qc.invalidateQueries({ queryKey: [cfg.route] })
-    } catch (err) {
-      setError(errorText(err))
-    }
-  })
-
-  async function unpublish() {
-    if (!idRef.current) return
-    await api.post(`/${cfg.route}/${idRef.current}/unpublish`)
-    setMeta((m) => ({ ...m, status: 'draft' }))
-    qc.invalidateQueries({ queryKey: [cfg.route] })
-  }
-
-  async function leave() {
-    if (meta.status === 'published') return navigate(`/${cfg.route}/${idRef.current}`)
-    if (!window.confirm('Discard this draft? It will be deleted.')) return
-    clearTimeout(timer.current)
-    pending.current = null
-    if (idRef.current) await api.delete(`/${cfg.route}/${idRef.current}`)
-    await qc.invalidateQueries()
-    navigate(`/${cfg.route}`)
-  }
+  const { meta, saveState, error, ensureId, publish, unpublish, leave } = useDraft({ route: cfg.route, item, form, listPath: cfg.list })
 
   const name = form.watch('name')
   const scientific = form.watch('scientific')

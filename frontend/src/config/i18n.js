@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useApp } from '../store/useApp'
-import { KINDS } from './kinds'
+import { GROUPS, KINDS } from './kinds'
 import { LANDS, SEASONS } from './seasons'
 
 // Tamil for every fixed label on the site, keyed by its English text. Anything missing stays in English.
@@ -15,6 +15,38 @@ const TA = {
 
   // Sections and kinds
   ...Object.fromEntries(Object.values(KINDS).map((k) => [k.label, k.ta])),
+  ...Object.fromEntries(Object.values(GROUPS).map((g) => [g.label, g.ta])),
+  All: 'அனைத்தும்',
+  Kind: 'வகை',
+  Home: 'முகப்பு',
+
+  // Home and articles
+  Articles: 'கட்டுரைகள்',
+  'A field book of the plants and creatures of Tamil land.': 'தமிழ் நிலத்தின் தாவரங்களுக்கும் உயிரினங்களுக்குமான களக் குறிப்பேடு.',
+  Latest: 'புதியது',
+  'More articles': 'மேலும் கட்டுரைகள்',
+  'All articles': 'அனைத்துக் கட்டுரைகளும்',
+  'No articles yet.': 'இன்னும் கட்டுரைகள் இல்லை.',
+  'Write the first article': 'முதல் கட்டுரையை எழுதுக',
+  'More will appear here as they are written.': 'எழுதப்படும்போது மேலும் கட்டுரைகள் இங்கே தோன்றும்.',
+  'In season now': 'இப்போதைய பருவம்',
+  'Nothing is marked for this season yet.': 'இந்தப் பருவத்துக்கு இன்னும் எதுவும் குறிக்கப்படவில்லை.',
+  'New article': 'புதிய கட்டுரை',
+  'In this article': 'இக்கட்டுரையில்',
+  Today: 'இன்று',
+  today: 'இன்று',
+  tomorrow: 'நாளை',
+  'in {n} days': 'இன்னும் {n} நாளில்',
+  '{name} year': '{name} ஆண்டு',
+  Star: 'நட்சத்திரம்',
+  'Coming up': 'வரவிருப்பவை',
+  Calendar: 'நாள்காட்டி',
+  'Previous month': 'முந்தைய மாதம்',
+  'Next month': 'அடுத்த மாதம்',
+  'Sow in {month}': '{month} மாதம் விதைக்க',
+  'Nothing in the book is sown this month yet.': 'இந்த மாதம் விதைப்பவை எதுவும் இன்னும் பதிவில் இல்லை.',
+  'Show all {n}': 'அனைத்தும் ({n})',
+  'Show fewer': 'குறைவாகக் காட்டு',
   plant: 'தாவரம்',
   tree: 'மரம்',
   insect: 'பூச்சி',
@@ -35,6 +67,7 @@ const TA = {
   'In depth': 'விரிவாக',
   Edit: 'திருத்து',
   Clone: 'நகலெடு',
+  Back: 'பின்செல்',
   Draft: 'வரைவு',
   Published: 'வெளியிடப்பட்டது',
 
@@ -43,7 +76,9 @@ const TA = {
   'Fruiting season': 'காய்க்கும் பருவம்',
   'Active season': 'செயல்படும் பருவம்',
   Land: 'திணை',
-  'Found in': 'காணப்படும் திணை',
+  'Land type': 'நில வகை',
+  'Leaf fall': 'இலை உதிர்வு',
+  'Found in': 'காணப்படும் நிலம்',
   'Perum Pozhudhu': 'பெரும்பொழுது',
   Ainthinai: 'ஐந்திணை',
   ...Object.fromEntries([...SEASONS, ...LANDS].flatMap((o) => [[o.name, o.ta], [o.sub, o.subTa]])),
@@ -143,12 +178,18 @@ const TA = {
   Whorled: 'வட்ட அடுக்கு',
 
   // Links
-  Harms: 'தீங்கு செய்கிறது',
-  'Harmed by': 'தீங்கு செய்பவை',
-  Helps: 'உதவுகிறது',
-  'Helped by': 'உதவுபவை',
-  'Nothing linked yet.': 'இன்னும் தொடர்பு இல்லை.',
+  Harms: 'இது பாதிக்கும் உயிர்கள்',
+  'Harmed by': 'இதைப் பாதிக்கும் உயிர்கள்',
+  Helps: 'இது உதவும் உயிர்கள்',
+  'Helped by': 'இதற்கு உதவும் உயிர்கள்',
+  'Nothing linked yet.': 'இன்னும் எதுவும் இணைக்கப்படவில்லை.',
   '+ {n} more →': '+ இன்னும் {n} →',
+  'Companion plants': 'துணைப் பயிர்கள்',
+  'How they help each other': 'ஒன்றுக்கொன்று எப்படி உதவுகின்றன',
+  'No description yet.': 'இன்னும் விளக்கம் இல்லை.',
+  'No companion plants yet.': 'இன்னும் துணைப் பயிர்கள் இல்லை.',
+  'Open {name}': '{name} பக்கத்தைத் திற',
+  Close: 'மூடு',
 
   // List page
   Name: 'பெயர்',

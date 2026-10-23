@@ -1,9 +1,9 @@
 import {
-  Apple, ArrowDownToLine, ArrowUp, Axe, Ban, Blocks, Bean, Carrot, Cherry, Citrus, Cloud, CloudRain, CloudSun, Droplet, Droplets, Flower2, Footprints, GitMerge, Grape, Grip, Hexagon, Infinity, Layers, Leaf,
+  Apple, ArrowDownToLine, ArrowUp, Axe, Ban, Blocks, Bean, Carrot, Cherry, Citrus, Cloud, CloudRain, CloudSun, Droplet, Droplets, Flower2, Footprints, GitMerge, Grape, Grip, Hexagon, Info, Infinity, Layers, Leaf,
   Milk, Mountain, Moon, MoveHorizontal, Palette, Pill as PillIcon, Recycle, Salad, Shrub, Spline, TreeDeciduous, TreePalm, Umbrella, Flame, Flower, Nut, Scissors, ShieldCheck, SignalHigh, SignalLow, SignalMedium, Sparkles, Split, Sprout, Sun, Sunset, TriangleAlert, User, Users, UsersRound, Waves, Wheat, Wind,
 } from 'lucide-react'
 import { FlowerIcon, KeyIcon, TreeIcon, hasKeyIcon } from './Icons'
-import { Card, cx } from './ui'
+import { Card, Popover, cx } from './ui'
 import { useT } from '../config/i18n'
 import { optionsIn, tagged, useOptionLabel, useTagLists } from '../config/master'
 
@@ -19,8 +19,8 @@ export function TraitCard({ title, icon: Icon, big, className, action, children 
       </div>
       <dl
         className={cx(
-          'mt-1 grid min-w-0 grid-cols-[fit-content(40%)_minmax(0,1fr)] content-start items-baseline gap-x-5 [&>*]:border-b [&>*]:border-dashed [&>*]:border-line [&>*:nth-last-child(-n+2)]:border-0',
-          big ? 'text-[17px] [&>*]:py-3' : 'text-[14px] [&>*]:py-2',
+          'mt-1 grid min-w-0 grid-cols-[fit-content(36%)_minmax(0,1fr)] content-start gap-x-4 leading-snug [&>*]:border-b [&>*]:border-dashed [&>*]:border-line [&>*:last-child]:border-0',
+          big ? 'text-[15px] [&>*]:py-3' : 'text-[14px] [&>*]:py-2.5',
         )}
       >
         {children}
@@ -29,17 +29,18 @@ export function TraitCard({ title, icon: Icon, big, className, action, children 
   )
 }
 
+// Each pair spans both columns on a subgrid, so label and value share one row and one rule.
 export const TraitRow = ({ label, children }) => (
-  <>
+  <div className="col-span-2 grid grid-cols-subgrid items-baseline">
     <dt className="min-w-0 text-ink-2 [overflow-wrap:break-word]">{label}</dt>
-    <dd className="min-w-0 [overflow-wrap:anywhere]">{children}</dd>
-  </>
+    <dd className="min-w-0 [overflow-wrap:break-word]">{children}</dd>
+  </div>
 )
 
 // Header icons per trait group; the body card uses the section's own icon.
 const GROUP_ICONS = { plant: Sprout, tree: TreeIcon, grow: Sun, seed: Bean, leaf: Leaf, flower: Flower2, fruit: Cherry, habits: Footprints }
 // Lists whose choices have their own drawn icon (see Icons.jsx); those rows show as a lime pill with it.
-const KEY_LISTS = ['lifeCycle', 'leafStyle', 'arrangement']
+const KEY_LISTS = ['lifeCycle', 'foliage', 'leafStyle', 'arrangement']
 // Every other list with pictures: the pill's colour, and an icon per option (`*` for any option not named).
 const PICTURE_LISTS = {
   plantType: {
@@ -96,8 +97,9 @@ function ColourPills({ text, colours }) {
         const swatches = optionsIn(part, colours)
         if (!swatches.length) return <span key={i} className="text-ink-2">{part}</span>
         return (
-          <span key={i} className="inline-flex items-center gap-1.5 rounded-full border border-line py-0.5 pl-1.5 pr-2.5">
-            <span className="flex shrink-0 -space-x-1">
+          // Long parts wrap, so the pill keeps soft corners rather than turning into an oval, and the swatches sit by the first line.
+          <span key={i} className="inline-flex items-start gap-1.5 rounded-[12px] border border-line py-0.5 pl-1.5 pr-2.5">
+            <span className="flex h-[1lh] shrink-0 items-center -space-x-1">
               {swatches.map((o) => (
                 <span key={o.id} className="size-3 rounded-full border border-ink/25" style={{ background: o.hex }} />
               ))}
@@ -110,8 +112,17 @@ function ColourPills({ text, colours }) {
   )
 }
 
+// Whether a row's text says more than its chosen options: what is left once their names and aliases
+// (and joining words like "or") are taken out.
+function saysMore(text, options) {
+  let rest = ` ${text.toLowerCase()} `
+  const terms = options.flatMap((o) => [o.en, o.ta, ...(o.aliases || [])]).filter(Boolean).map((term) => term.toLowerCase())
+  for (const term of terms.sort((a, b) => b.length - a.length)) rest = rest.split(term).join(' ')
+  return /[\p{L}\p{N}]/u.test(rest.replace(/\b(or|and|with)\b|அல்லது|மற்றும்/g, ' '))
+}
+
 // One row's value: its text, dressed up by the row's tags where they have a picture.
-function TraitValue({ path, value, list, options, label }) {
+function TraitValue({ path, value, list, options, label, big }) {
   const text = value || options.map(label).join(', ')
   if (!text) return '—'
   if (path === 'flower.colour' && options.length)
@@ -122,24 +133,48 @@ function TraitValue({ path, value, list, options, label }) {
       </span>
     )
   if (list?.colour && options.length) return <ColourPills text={text} colours={options} />
-  if (KEY_LISTS.includes(list?.key) && options.length)
-    return (
-      <Pill>
-        {options.filter((o) => hasKeyIcon(o.id)).map((o) => <KeyIcon key={o.id} name={o.id} className="size-[18px] shrink-0" />)}
-        {text}
-      </Pill>
-    )
+  const keyed = KEY_LISTS.includes(list?.key)
   const pictures = PICTURE_LISTS[list?.key]
-  if (pictures && options.length) {
-    const icons = [...new Set(options.map((o) => pictures.icons[o.id] || pictures.icons['*']).filter(Boolean))].slice(0, 3)
+  if (!options.length || (!keyed && !pictures)) return text
+  // One chip per chosen option, named as the master list names it, like a multi-select. When the row's own
+  // text says more than the chips do ("6+ hours", "with 3 nodes"), it follows in small type on mobile and
+  // behind an info button on desktop.
+  const chip = (o) => {
+    const Icon = pictures && (pictures.icons[o.id] || pictures.icons['*'])
     return (
-      <Pill tone={pictures.tones?.[options[0].id] || pictures.tone}>
-        {icons.map((Icon, i) => <Icon key={i} className="size-4 shrink-0" strokeWidth={1.8} />)}
-        {text}
+      <Pill key={o.id} tone={pictures && (pictures.tones?.[o.id] || pictures.tone)}>
+        {keyed && hasKeyIcon(o.id) && <KeyIcon name={o.id} className="size-[18px] shrink-0" />}
+        {Icon && <Icon className="size-4 shrink-0" strokeWidth={1.8} />}
+        {label(o)}
       </Pill>
     )
   }
-  return text
+  const more = value && saysMore(value, options)
+  if (big)
+    return (
+      <span className="-my-0.5 flex flex-col items-start gap-1">
+        <span className="inline-flex flex-wrap gap-1.5">{options.map(chip)}</span>
+        {more && <span className="text-[13px] leading-snug text-ink-3 ta:text-[13.5px]">{value}</span>}
+      </span>
+    )
+  return (
+    <span className="-my-0.5 inline-flex flex-wrap items-center gap-1.5">
+      {options.map(chip)}
+      {more && (
+        <Popover
+          align="right"
+          className="w-max max-w-56 px-3 py-2 text-[13px] leading-snug text-ink-2"
+          trigger={({ open, toggle }) => (
+            <button type="button" onClick={toggle} aria-label={value} aria-expanded={open} className={cx('grid size-7 place-items-center rounded-full text-ink-3 hover:text-ink', open && 'text-ink')}>
+              <Info className="size-4" strokeWidth={1.8} />
+            </button>
+          )}
+        >
+          {() => value}
+        </Popover>
+      )}
+    </span>
+  )
 }
 
 export function TraitCards({ cfg, item, big }) {
@@ -149,10 +184,7 @@ export function TraitCards({ cfg, item, big }) {
   const row = (group, f) => {
     const path = `${group.key}.${f.key}`
     const list = lists.get(path)
-    const value = item[group.key]?.[f.key]
-    // Items saved before the master lists have no tags yet, so work them out from the text as the backend would.
-    const options = tagged(item, path, list)
-    return { path, list, value, options: options.length || !list ? options : optionsIn(value, list.options) }
+    return { path, list, value: item[group.key]?.[f.key], options: tagged(item, path, list) }
   }
   const groups = cfg.traits.filter((g) => g.fields.some((f) => row(g, f).value || row(g, f).options.length))
   if (!groups.length) return null
@@ -162,7 +194,7 @@ export function TraitCards({ cfg, item, big }) {
         <TraitCard key={group.key} title={t(group.label)} icon={GROUP_ICONS[group.key] || cfg.Icon} big={big}>
           {group.fields.map((f) => (
             <TraitRow key={f.key} label={t(f.label)}>
-              <TraitValue {...row(group, f)} label={label} />
+              <TraitValue {...row(group, f)} label={label} big={big} />
             </TraitRow>
           ))}
         </TraitCard>

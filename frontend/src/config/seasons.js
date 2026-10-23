@@ -27,3 +27,14 @@ export const PILL_TONES = {
   Pest: 'bg-rose',
   Beneficial: 'bg-lime',
 }
+
+// The month (1–12) each season starts, about the 14th, when its first Tamil month begins.
+const STARTS = { ilavenil: 4, mudhuvenil: 6, koothir: 8, kaar: 10, munpani: 12, pinpani: 2 }
+
+// The season a day falls in.
+export function seasonOn(date = new Date()) {
+  const d = new Date(date)
+  d.setDate(d.getDate() - 13)
+  const month = d.getMonth() + 1
+  return SEASONS.find((s) => (month - STARTS[s.id] + 12) % 12 < 2)
+}

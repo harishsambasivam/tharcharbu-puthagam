@@ -7,7 +7,7 @@ import { presignUpload } from '../core/s3.js'
 
 const TYPES = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' }
 const input = z.object({
-  kind: z.enum(KINDS),
+  kind: z.enum([...KINDS, 'article']),
   id: z.string().regex(/^[a-z0-9-]{1,40}$/),
   contentType: z.enum(Object.keys(TYPES)),
 })

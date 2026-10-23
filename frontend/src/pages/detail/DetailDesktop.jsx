@@ -1,14 +1,16 @@
 import { Link } from 'react-router-dom'
-import { ArrowLeft, ArrowRight, Copy, Pencil } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Copy, Link2, Pencil } from 'lucide-react'
 import DesktopHeader from '../../layout/DesktopHeader'
 import { Card, DraftBadge, Kicker, Label } from '../../components/ui'
 import { LandGrid, SeasonGrid } from '../../components/SeasonLand'
 import { TraitCards } from '../../components/Traits'
-import { Article, LifeCycle, Notes } from '../../components/About'
+import { Article, Description, LifeCycle, Notes } from '../../components/About'
 import { LinksBoard } from '../../components/Links'
+import { Companions } from '../../components/Companions'
 import { useAdmin } from '../../store/useApp'
 import { useClone } from '../../api/queries'
 import { useT } from '../../config/i18n'
+import { GROUPS } from '../../config/kinds'
 import { PhotoCarousel, Stats, OtherNames, languageNames, otherNames } from './parts'
 
 export default function DetailDesktop({ cfg, item, nav }) {
@@ -23,13 +25,17 @@ export default function DetailDesktop({ cfg, item, nav }) {
         <section className="pb-6 pt-4">
           <div className="flex items-center gap-3 text-[13px] text-ink-2">
             <span>
-              <Link to={`/${cfg.route}`} className="text-moss underline underline-offset-2">
+              <Link to={`/${cfg.group}`} className="text-moss underline underline-offset-2">
+                {t(GROUPS[cfg.group].label)}
+              </Link>
+              {' / '}
+              <Link to={cfg.list} className="text-moss underline underline-offset-2">
                 {t(cfg.label)}
               </Link>
               {item.group && (
                 <>
                   {' / '}
-                  <Link to={`/${cfg.route}`} className="text-moss underline underline-offset-2">
+                  <Link to={cfg.list} className="text-moss underline underline-offset-2">
                     {item.group}
                   </Link>
                 </>
@@ -86,10 +92,11 @@ export default function DetailDesktop({ cfg, item, nav }) {
               )}
             </dl>
             <PhotoCarousel photos={item.photos || []} className="col-start-1 row-start-2 aspect-[4/3] w-full self-start" />
-            <div className="col-start-2 row-start-2 flex flex-col gap-4 short:gap-3">
+            <div className="col-start-2 row-start-2 flex flex-col gap-7 short:gap-5">
               <Stats cfg={cfg} item={item} />
               <SeasonGrid title={cfg.seasonLabel} value={item.seasons} />
               <LandGrid title={cfg.landLabel} value={item.lands} />
+              <Description text={item.notes?.description} />
             </div>
           </div>
         </section>
@@ -105,11 +112,16 @@ export default function DetailDesktop({ cfg, item, nav }) {
         )}
 
         <div className="mt-10">
-          <Notes cfg={cfg} notes={item.notes} />
+          <Notes cfg={cfg} notes={item.notes} skip={['description']} />
         </div>
 
+        {cfg.flora && <Companions links={item.links} className="mt-11" />}
+
         <section className="mt-11">
-          <Kicker className="mb-3">{t('Links')}</Kicker>
+          <Kicker className="mb-3 flex items-center gap-2">
+            <Link2 className="size-4" strokeWidth={1.8} />
+            {t('Links')}
+          </Kicker>
           <LinksBoard links={item.links} />
         </section>
 
@@ -120,7 +132,7 @@ export default function DetailDesktop({ cfg, item, nav }) {
         )}
 
         <Card className="mt-10 flex items-center gap-3 px-5 py-4">
-          <Link to={`/${cfg.route}`} className="text-[14px] text-moss underline underline-offset-2">
+          <Link to={cfg.list} className="text-[14px] text-moss underline underline-offset-2">
             {t.ta ? t('{label} — all', { label: cfg.ta }) : `All ${cfg.label.toLowerCase()}`}
           </Link>
           {nav.prev && (

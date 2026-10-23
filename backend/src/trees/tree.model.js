@@ -6,7 +6,7 @@ export const TreeText = baseText.extend({
     tree: group(['type', 'lifeCycle', 'habit', 'height']),
     grow: group(['planting', 'sunlight', 'water', 'soil', 'spacing']),
     seed: group(['germinationTime', 'germinationRate', 'grownFrom']),
-    leaf: group(['style', 'arrangement', 'thorn', 'length', 'width']),
+    leaf: group(['style', 'arrangement', 'foliage', 'thorn', 'length', 'width']),
     flower: group(['colour', 'aroma', 'size']),
     fruit: group(['colour', 'size', 'type']),
     notes: group(['description', 'habitat', 'landscape', 'propagation', 'harvesting', 'uses', 'medicinal', 'pests'], 2000),

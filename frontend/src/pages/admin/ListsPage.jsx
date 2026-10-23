@@ -140,30 +140,30 @@ function ListEditor({ list, items }) {
         <span />
       </div>
       {rows.map((r, i) => (
-        <div key={r.id || `new-${i}`} className={cx('grid items-center gap-x-4 border-b border-dashed border-line py-2', cols)}>
+        <div key={r.id || `new-${i}`} className={cx('grid items-start gap-x-4 border-b border-dashed border-line py-2.5', cols)}>
           {list.colour && (
             <input
               type="color"
               value={r.hex || '#9a9a95'}
               onChange={(e) => edit(i, { hex: e.target.value })}
               aria-label={`${r.en} colour`}
-              className="size-7 cursor-pointer rounded-full border border-line bg-transparent"
+              className="mt-0.5 size-7 cursor-pointer rounded-full border border-line bg-transparent"
             />
           )}
           <div>
-            <input value={r.en} onChange={(e) => edit(i, { en: e.target.value })} placeholder="English name" autoFocus={!r.id && !r.en} className={cx(lineInput, 'text-[15px]')} />
-            <div className="mt-0.5 font-mono text-[10px] text-ink-3">{r.id || 'new · id set on save'}</div>
+            <input value={r.en} onChange={(e) => edit(i, { en: e.target.value })} placeholder="English name" autoFocus={!r.id && !r.en} className={cx(lineInput, 'h-8 text-[15px]')} />
+            <div className="mt-1 font-mono text-[10px] text-ink-3">{r.id || 'new · id set on save'}</div>
           </div>
-          <input value={r.ta} onChange={(e) => edit(i, { ta: e.target.value })} placeholder="தமிழில்" className={cx(lineInput, 'text-[15px]')} />
+          <input value={r.ta} onChange={(e) => edit(i, { ta: e.target.value })} placeholder="தமிழில்" className={cx(lineInput, 'h-8 text-[15px]')} />
           <input
             value={r.aliases}
             onChange={(e) => edit(i, { aliases: e.target.value })}
             placeholder="words, separated, by commas"
             title="Other words that mean this option, used to suggest tags from an item's text"
-            className={cx(lineInput, 'text-[13px] text-ink-2')}
+            className={cx(lineInput, 'h-8 text-[13px] text-ink-2')}
           />
-          <span className="text-right font-mono text-[13px] text-ink-2">{count[r.id] || '—'}</span>
-          <div className="flex justify-end gap-1 text-ink-2">
+          <span className="flex h-8 items-center justify-end font-mono text-[13px] text-ink-2">{count[r.id] || '—'}</span>
+          <div className="flex h-8 items-center justify-end gap-1 text-ink-2">
             <button type="button" aria-label="Move up" disabled={i === 0} onClick={() => move(i, -1)} className="p-1 hover:text-ink disabled:opacity-30">
               <ArrowUp className="size-3.5" />
             </button>

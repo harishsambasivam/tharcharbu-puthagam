@@ -1,12 +1,22 @@
 import { useMemo } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { api } from './client'
 import { useAdmin } from '../store/useApp'
 
+const listQuery = (route, admin) => ({ queryKey: [route, 'list', admin], queryFn: () => api.get(`/${route}`) })
+
 export function useList(route) {
+  return useQuery(listQuery(route, useAdmin()))
+}
+
+// Several sections' lists as one, in the order given; shares its cache with useList.
+export function useLists(routes) {
   const admin = useAdmin()
-  return useQuery({ queryKey: [route, 'list', admin], queryFn: () => api.get(`/${route}`) })
+  return useQueries({
+    queries: routes.map((route) => listQuery(route, admin)),
+    combine: (results) => ({ data: results.flatMap((r) => r.data || []), isLoading: results.some((r) => r.isLoading) }),
+  })
 }
 
 export function useItem(route, id) {
@@ -33,5 +43,10 @@ export function useCatalog() {
   return useMemo(() => new Map(data.map((i) => [`${i.kind}/${i.id}`, i])), [data])
 }
 
-// A link list with each entry's details filled in; links to items the viewer cannot see are left out.
-export const resolveLinks = (catalog, list = []) => list.flatMap((l) => catalog.get(`${l.kind}/${l.id}`) || [])
+// A link list with each entry's details filled in (and a companion's note kept); links to items the viewer
+// cannot see are left out.
+export const resolveLinks = (catalog, list = []) =>
+  list.flatMap((l) => {
+    const entry = catalog.get(`${l.kind}/${l.id}`)
+    return entry ? { ...entry, note: l.note } : []
+  })

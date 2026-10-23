@@ -5,22 +5,26 @@ import DesktopHeader from '../../layout/DesktopHeader'
 import { DraftBadge, cx } from '../../components/ui'
 import { useAdmin, useApp, useDisplayName } from '../../store/useApp'
 import { columnsFor, defaultColumns } from './table'
-import { FilterMenu, MoreFilters, SearchBox } from './Filters'
+import { FilterMenu, KindChips, MoreFilters, SearchBox } from './Filters'
 import ColumnsMenu from './ColumnsMenu'
 import Cell from './Cell'
 import { useT } from '../../config/i18n'
+import { KINDS, ROUTE_OF } from '../../config/kinds'
 
-const HEAD_ICON = { seasons: List, lands: List, pill: CircleCheck }
+const HEAD_ICON = { seasons: List, lands: List, pill: CircleCheck, kind: CircleCheck }
 
-export default function ListDesktop({ cfg, data, items, isLoading, q, setQ, filters, setFilters, defs }) {
+export default function ListDesktop({ group, kind, setKind, cfg, data, items, isLoading, q, setQ, filters, setFilters, defs }) {
   const admin = useAdmin()
   const t = useT()
   const displayName = useDisplayName()
   const navigate = useNavigate()
-  const saved = useApp((s) => s.columns[cfg.route])
+  // Columns are remembered per table: each kind, and each group's "All".
+  const columnsKey = kind || `${group.route}:all`
+  const saved = useApp((s) => s.columns[columnsKey])
   const setColumns = useApp((s) => s.setColumns)
-  const columns = useMemo(() => columnsFor(cfg), [cfg])
-  const visible = saved || defaultColumns(cfg)
+  const columns = useMemo(() => columnsFor(cfg, !kind), [cfg, kind])
+  const visible = saved || defaultColumns(cfg, !kind)
+  const href = (item) => `/${ROUTE_OF[item.kind]}/${item.id}`
   const shown = columns.filter((c) => visible.includes(c.id))
   const drafts = data.filter((i) => i.status === 'draft').length
 
@@ -31,7 +35,7 @@ export default function ListDesktop({ cfg, data, items, isLoading, q, setQ, filt
         <div className="flex items-end justify-between gap-6">
           <div>
             <h1 className="font-serif text-[46px] leading-none tracking-tight">
-              {t.ta ? cfg.ta : cfg.label} <span className="text-[32px] text-ink-2">{t.ta ? cfg.label : cfg.ta}</span>
+              {t.ta ? group.ta : group.label} <span className="text-[32px] text-ink-2">{t.ta ? group.label : group.ta}</span>
             </h1>
             <p className="mt-5 text-[15px] text-ink-2">
               {t.ta ? t('{n} {label}', { n: data.length, label: cfg.ta }) : `${data.length} ${data.length === 1 ? cfg.one : cfg.label.toLowerCase()}`}
@@ -39,13 +43,19 @@ export default function ListDesktop({ cfg, data, items, isLoading, q, setQ, filt
             </p>
           </div>
           {admin && (
-            <Link to={`/${cfg.route}/new`} className="flex items-center gap-2 rounded-[4px] bg-ink px-6 py-3 text-[15px] font-semibold text-paper">
-              <Plus className="size-4" /> {t('New {one}', { one: t(cfg.one) })}
-            </Link>
+            <div className="flex gap-2">
+              {(kind ? [kind] : group.kinds).map((r) => (
+                <Link key={r} to={`/${r}/new`} className="flex items-center gap-2 rounded-[4px] bg-ink px-5 py-3 text-[15px] font-semibold text-paper">
+                  <Plus className="size-4" /> {t('New {one}', { one: t(KINDS[r].one) })}
+                </Link>
+              ))}
+            </div>
           )}
         </div>
 
-        <div className="mt-8 flex items-center gap-2.5">
+        <KindChips group={group} kind={kind} setKind={setKind} className="mt-8" />
+
+        <div className="mt-4 flex items-center gap-2.5">
           <SearchBox value={q} onChange={setQ} className="w-[280px]" />
           {defs.filter((d) => !d.more || filters[d.key]).map((d) => (
             <FilterMenu key={d.key} def={d} value={filters[d.key]} onChange={(v) => setFilters({ ...filters, [d.key]: v })} />
@@ -57,7 +67,7 @@ export default function ListDesktop({ cfg, data, items, isLoading, q, setQ, filt
             </button>
           )}
           <div className="ml-auto">
-            <ColumnsMenu columns={columns} visible={visible} onChange={(ids) => setColumns(cfg.route, ids)} />
+            <ColumnsMenu columns={columns} visible={visible} onChange={(ids) => setColumns(columnsKey, ids)} />
           </div>
         </div>
 
@@ -81,10 +91,10 @@ export default function ListDesktop({ cfg, data, items, isLoading, q, setQ, filt
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} onClick={() => navigate(`/${cfg.route}/${item.id}`)} className="group cursor-pointer border-b border-line">
+                <tr key={`${item.kind}/${item.id}`} onClick={() => navigate(href(item))} className="group cursor-pointer border-b border-line">
                   <td className="sticky left-0 z-10 border-r border-line bg-paper px-4 py-3 group-hover:bg-card">
                     {/* A real link too, so the name can be opened in a new tab. */}
-                    <Link to={`/${cfg.route}/${item.id}`} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 font-semibold">
+                    <Link to={href(item)} onClick={(e) => e.stopPropagation()} className="flex items-center gap-2 font-semibold">
                       {displayName(item)} {item.status === 'draft' && <DraftBadge />}
                     </Link>
                   </td>

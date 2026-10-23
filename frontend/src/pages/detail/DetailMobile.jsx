@@ -1,12 +1,13 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Copy, Pencil } from 'lucide-react'
 import MobileTabBar from '../../layout/MobileTabBar'
 import { LangButton, ThemeButton } from '../../layout/HeaderButtons'
-import { Kicker, cx } from '../../components/ui'
+import { Kicker, RoundButton, cx } from '../../components/ui'
 import { LandGrid, SeasonGrid } from '../../components/SeasonLand'
 import { TraitCards } from '../../components/Traits'
-import { Article, LifeCycle, Notes } from '../../components/About'
+import { Article, Description, LifeCycle, Notes } from '../../components/About'
 import { LinksBoard } from '../../components/Links'
+import { Companions } from '../../components/Companions'
 import { useAdmin } from '../../store/useApp'
 import { useClone } from '../../api/queries'
 import { useT } from '../../config/i18n'
@@ -16,14 +17,18 @@ export default function DetailMobile({ cfg, item }) {
   const admin = useAdmin()
   const clone = useClone(cfg)
   const t = useT()
+  const navigate = useNavigate()
+  const location = useLocation()
+  // Direct visits have no in-app history; fall back to the list.
+  const goBack = () => (location.key === 'default' ? navigate(cfg.list) : navigate(-1))
 
   return (
     <div className="min-h-screen pb-36">
       <header className="sticky top-0 z-10 border-b border-line bg-paper px-4 pb-5 pt-2">
         <div className="flex items-center gap-2">
-          <Link to={`/${cfg.route}`} className="flex h-[52px] items-center gap-2 rounded-full border border-line pl-4 pr-6 text-[19px] font-semibold">
-            <ChevronLeft className="size-6" strokeWidth={1.8} /> {t(cfg.label)}
-          </Link>
+          <RoundButton onClick={goBack} title={t('Back')} className="size-9">
+            <ChevronLeft className="size-5" strokeWidth={1.6} />
+          </RoundButton>
           {admin && (
             <>
               <Link to={`/${cfg.route}/${item.id}/edit`} aria-label={t('Edit')} className="ml-auto grid size-[52px] place-items-center rounded-full border border-line">
@@ -34,8 +39,8 @@ export default function DetailMobile({ cfg, item }) {
               </button>
             </>
           )}
-          <LangButton className={cx('size-[52px] text-[20px]', !admin && 'ml-auto')} />
-          <ThemeButton className="size-[52px]" />
+          <LangButton className={cx('size-9', !admin && 'ml-auto')} />
+          <ThemeButton className="size-9" />
         </div>
         <h1 className="mt-5 font-serif text-[29px] leading-tight">
           {item.names?.ta && <span className="font-sans">{item.names.ta} </span>}
@@ -60,9 +65,11 @@ export default function DetailMobile({ cfg, item }) {
         <Stats cfg={cfg} item={item} big />
         <SeasonGrid title={cfg.seasonLabel} value={item.seasons} className="pt-2" />
         <LandGrid title={cfg.landLabel} value={item.lands} className="[&_.grid]:grid-cols-3" />
+        <Description text={item.notes?.description} className="pt-2" />
         <TraitCards cfg={cfg} item={item} big />
         {cfg.lifeCycle && <LifeCycle stages={item.lifeCycle} big />}
-        <Notes cfg={cfg} notes={item.notes} big />
+        <Notes cfg={cfg} notes={item.notes} big skip={['description']} />
+        {cfg.flora && <Companions links={item.links} big className="pt-4" />}
         <LinksBoard links={item.links} big />
         <Article text={item.article} big />
       </main>

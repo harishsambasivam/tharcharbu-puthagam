@@ -8,7 +8,9 @@
     "hash-password": "node scripts/hash-password.js",
     "seed:articles": "node scripts/seed-articles.js",
     "migrate:tags": "node scripts/migrate-tags.js",
-    "fix:spacing-soil": "node scripts/fix-spacing-soil.js"
+    "fix:spacing-soil": "node scripts/fix-spacing-soil.js",
+    "fix:sowing": "node scripts/fix-sowing.js",
+    "fix:foliage": "node scripts/fix-foliage.js"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.700.0",

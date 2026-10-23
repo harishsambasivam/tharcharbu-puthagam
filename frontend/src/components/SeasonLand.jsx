@@ -3,18 +3,21 @@ import { LANDS, SEASONS } from '../config/seasons'
 import { Kicker, Tag, cx } from './ui'
 import { useT } from '../config/i18n'
 
-// Selection grids for Perum Pozhudhu (seasons) and Ainthinai (lands). Pass onToggle to make them editable.
-export const SeasonGrid = (props) => <Grid {...props} options={SEASONS} cols="grid-cols-3" sub="Perum Pozhudhu" />
-export const LandGrid = (props) => <Grid {...props} options={LANDS} cols="grid-cols-5" sub="Ainthinai" noCheck />
+// Selection grids for the six Tamil seasons and the five lands. Pass onToggle to make them editable.
+export const SeasonGrid = (props) => <Grid {...props} options={SEASONS} cols="grid-cols-3" />
+export const LandGrid = (props) => <Grid {...props} options={LANDS} cols="grid-cols-5" noCheck />
 
-function Grid({ title, value = [], onToggle, options, cols, sub, className, noCheck }) {
+// Read-only grids show just the marked options (none marked, no grid); editable ones show all to pick from.
+function Grid({ title, value = [], onToggle, options, cols, className, noCheck }) {
   const t = useT()
+  const shown = onToggle ? options : options.filter((o) => value.includes(o.id))
+  if (!shown.length) return null
   return (
     <div className={className}>
-      <Kicker sub={onToggle ? 'click to mark' : t(sub)}>{t(title)}</Kicker>
+      <Kicker sub={onToggle && 'click to mark'}>{t(title)}</Kicker>
       <div className={cx('mt-2.5 grid gap-1.5', cols)}>
-        {options.map((o) => (
-          <Tile key={o.id} option={o} on={value.includes(o.id)} check={!noCheck} onClick={onToggle && (() => onToggle(o.id))} />
+        {shown.map((o) => (
+          <Tile key={o.id} option={o} on={value.includes(o.id)} check={!noCheck && onToggle} onClick={onToggle && (() => onToggle(o.id))} />
         ))}
       </div>
     </div>

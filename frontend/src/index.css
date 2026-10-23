@@ -49,8 +49,8 @@
   --color-rose: #f3cdbf;
   --color-onrose: #7a2e1e;
   --color-amber: #ebcb78;
-  --font-serif: 'Newsreader', 'Mukta Malar', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', Georgia, serif;
-  --font-sans: 'IBM Plex Sans', 'Noto Sans Tamil', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', system-ui, sans-serif;
+  --font-serif: 'Newsreader', 'IBM Plex Sans Tamil', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', Georgia, serif;
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Tamil', 'Noto Sans Kannada', 'Noto Sans Malayalam', 'Noto Sans Telugu', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 
@@ -58,7 +58,8 @@ body {
   @apply bg-paper text-ink font-sans antialiased;
 }
 
-/* IBM Plex Mono has no Tamil letters and its wide spaces pull Tamil words apart, so Tamil labels use the sans face. */
+/* IBM Plex Mono has no Tamil letters and its wide spaces pull Tamil words apart, so Tamil labels use
+   the sans face (IBM Plex Sans Tamil for the Tamil letters), which keeps the headings' look. */
 :lang(ta) .font-mono,
 .font-mono:lang(ta) {
   font-family: var(--font-sans);

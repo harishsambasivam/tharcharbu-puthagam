@@ -57,7 +57,7 @@ function AddInline({ label, placeholder, onAdd, fields = 1 }) {
 // Tamil sits right beside the English, so a field can be translated where it is typed.
 export const TA_PLACEHOLDER = 'தமிழில்'
 
-function Pair({ en, ta, as: El = 'input', placeholder, className, stacked, ...props }) {
+export function Pair({ en, ta, as: El = 'input', placeholder, className, stacked, ...props }) {
   const { register } = useFormContext()
   return (
     <div className={stacked ? 'space-y-1' : 'grid grid-cols-2 gap-3'}>
