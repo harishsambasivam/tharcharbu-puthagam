@@ -35,8 +35,6 @@ copied over on Publish). Links are written on both items so they show on both pa
 ```bash
 cd backend
 cp .env.example .env          # add AWS keys, table and bucket names
-npm run hash-password -- "your password"   # paste the output into .env
-openssl rand -hex 32          # paste as JWT_SECRET
 npm run seed                  # loads seed/flora-fauna.xlsx; skips existing items (--overwrite, --dry-run)
 npm run dev                   # http://localhost:4000
 
