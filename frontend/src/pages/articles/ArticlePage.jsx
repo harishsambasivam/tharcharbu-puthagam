@@ -7,7 +7,8 @@ import { resolveLinks, useCatalog, useItem } from '../../api/queries'
 import { useAdmin, useDisplayName, useLocalize, useSubName } from '../../store/useApp'
 import { ROUTE_OF } from '../../config/kinds'
 import { useT } from '../../config/i18n'
-import { Cover, paragraphs, useArticleDate } from './parts'
+import Prose from '../../components/Prose'
+import { Cover, useArticleDate } from './parts'
 
 export default function ArticlePage() {
   const { id } = useParams()
@@ -51,13 +52,7 @@ export default function ArticlePage() {
           </figure>
         )}
 
-        <div className="mt-8 space-y-5 font-serif text-[18px] leading-[1.75] md:text-[19px] ta:text-[16px] ta:leading-[1.85]">
-          {paragraphs(a.body).map((p, i) => (
-            <p key={i} className="whitespace-pre-line">
-              {p}
-            </p>
-          ))}
-        </div>
+        <Prose text={a.body} className="mt-8 text-[18px] leading-[1.75] md:text-[19px] ta:text-[16px] ta:leading-[1.85]" />
 
         {photos.map((p, i) => (
           <figure key={i} className="mt-8">

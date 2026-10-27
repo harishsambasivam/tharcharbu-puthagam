@@ -3,6 +3,8 @@ import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib'
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as s3 from 'aws-cdk-lib/aws-s3'
 import * as lambda from 'aws-cdk-lib/aws-lambda'
+import * as apigw from 'aws-cdk-lib/aws-apigatewayv2'
+import { HttpLambdaIntegration } from 'aws-cdk-lib/aws-apigatewayv2-integrations'
 import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs'
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront'
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'
@@ -12,7 +14,7 @@ const path = (p) => fileURLToPath(new URL(p, import.meta.url))
 
 // One CloudFront domain serves everything:
 //   /*        → React app (S3)
-//   /api/*    → Express API (Lambda function URL)
+//   /api/*    → Express API (Lambda behind an HTTP API; function URLs aren't offered in every region)
 //   /media/*  → uploaded photos (S3)
 export class SiteStack extends Stack {
   constructor(scope, id, props) {
@@ -24,7 +26,7 @@ export class SiteStack extends Stack {
     const table = new dynamodb.TableV2(this, 'Table', {
       partitionKey: { name: 'pk', type: dynamodb.AttributeType.STRING },
       sortKey: { name: 'sk', type: dynamodb.AttributeType.STRING },
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       removalPolicy: RemovalPolicy.RETAIN,
     })
 
@@ -52,18 +54,24 @@ export class SiteStack extends Stack {
       bundling: {
         format: OutputFormat.ESM,
         target: 'node22',
+        // Bundle the AWS SDK too, so Lambda runs the version in package-lock rather than the runtime's copy.
+        externalModules: [],
         banner: "import { createRequire } from 'module'; const require = createRequire(import.meta.url);",
+        // Ship backend/.env with the code (lambda.js loads it). AWS_* lines stay behind: Lambda uses its own role.
+        commandHooks: {
+          beforeBundling: () => [],
+          beforeInstall: () => [],
+          afterBundling: (inputDir, outputDir) => [`grep -v '^AWS_' "${inputDir}/.env" > "${outputDir}/.env"`],
+        },
       },
       environment: {
         TABLE_NAME: table.tableName,
         BUCKET_NAME: media.bucketName,
-        ADMIN_PASSWORD_HASH: process.env.ADMIN_PASSWORD_HASH,
-        JWT_SECRET: process.env.JWT_SECRET,
       },
     })
     table.grantReadWriteData(api)
     media.grantPut(api)
-    const apiUrl = api.addFunctionUrl({ authType: lambda.FunctionUrlAuthType.NONE })
+    const http = new apigw.HttpApi(this, 'HttpApi', { defaultIntegration: new HttpLambdaIntegration('Api', api) })
 
     // Send every non-file path to index.html so React Router can handle it.
     const spa = new cloudfront.Function(this, 'SpaRewrite', {
@@ -82,7 +90,7 @@ export class SiteStack extends Stack {
       },
       additionalBehaviors: {
         'api/*': {
-          origin: new origins.FunctionUrlOrigin(apiUrl),
+          origin: new origins.HttpOrigin(`${http.apiId}.execute-api.${this.region}.amazonaws.com`),
           viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
           allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
           cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,

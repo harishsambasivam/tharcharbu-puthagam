@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { text } from '../core/schema.js'
 import { KINDS } from '../core/links.js'
 
-// The written text, stored once per language like the other models. `body` is split into paragraphs on blank lines.
+// The written text, stored once per language like the other models. `body` is Markdown, like `article` on the other models.
 export const ArticleText = z.object({
   title: text(160),
   summary: text(600),

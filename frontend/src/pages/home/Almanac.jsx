@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ChevronRight, Sprout } from 'lucide-react'
 import { Card, Kicker, Photo, RoundButton, cx } from '../../components/ui'
@@ -62,22 +62,25 @@ export function TodayCard({ className }) {
         {weekdayName(d.weekday, t.ta)} · {t.ta ? english : tamil} · {t('{name} year', { name: yearName(d, t.ta) })}
       </div>
 
-      <div className="mt-5 flex items-center gap-3 border-t border-dashed border-line pt-4">
-        <MoonIcon elongation={d.elongation} className="size-10 shrink-0" />
-        <div className="min-w-0 text-[14px] leading-snug">
+      {/* Marks in one column (the moon, then each observance's icon), words lined up in the next. */}
+      <div className="mt-5 grid grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 border-t border-dashed border-line pt-4 text-[14px] leading-snug">
+        <MoonIcon elongation={d.elongation} className="size-10" />
+        <div>
           <div className="font-semibold">
             {pakshaName(d.waxing, t.ta)} · {thithiName(d.thithi, t.ta)}
           </div>
           <div className="text-ink-2">
             {t('Star')}: {starName(d.star, t.ta)}
           </div>
-          {d.observances.map((o) => (
-            <div key={o[0]} className="flex items-center gap-1.5 font-semibold text-moss">
-              <Mark observance={o} />
-              {o[t.ta ? 1 : 0]}
-            </div>
-          ))}
         </div>
+        {d.observances.map((o) => (
+          <Fragment key={o[0]}>
+            <span className="flex justify-center text-moss">
+              <Mark observance={o} />
+            </span>
+            <span className="font-semibold">{o[t.ta ? 1 : 0]}</span>
+          </Fragment>
+        ))}
       </div>
 
       <dl className="mt-4 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 border-t border-dashed border-line pt-4 text-[14px]">

@@ -29,7 +29,7 @@ export const base = z.object({
 })
 
 // The written text, stored once per language. `photos` lines up with the shared photos by position.
-// `article` is the long-form write-up; blank lines separate its paragraphs.
+// `article` is the long-form write-up, in Markdown (images point at their S3 key).
 export const baseText = z.object({
   article: text(20000),
   photos: z.array(z.object({ label: text(40), caption: text(120) })).max(12).default([]),

@@ -1,5 +1,6 @@
 import { Bug, Footprints, HeartPulse, Info, MapPin, RefreshCw, ScrollText, Search, ShieldCheck, ShoppingBasket, Sprout, Trees, Utensils, Wheat } from 'lucide-react'
 import { Card, Kicker, Label, cx } from './ui'
+import Prose from './Prose'
 import { useT } from '../config/i18n'
 
 // An icon for each note heading, so the write-up reads at a glance.
@@ -33,24 +34,17 @@ export function LifeCycle({ stages = [], big }) {
   )
 }
 
-// The long-form write-up, split into paragraphs on blank lines.
+// The long-form write-up, in Markdown: headings, quotes, links and captioned images.
 export function Article({ text = '', big }) {
   const t = useT()
-  const paragraphs = text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
-  if (!paragraphs.length) return null
+  if (!text.trim()) return null
   return (
     <section>
       <Kicker className="mb-3 flex items-center gap-2">
         <ScrollText className="size-4" strokeWidth={1.8} />
         {t('In depth')}
       </Kicker>
-      <div className={cx('max-w-[68ch] space-y-5 font-serif text-ink', big ? 'text-[20px] leading-[1.7] ta:text-[18px]' : 'text-[17px] leading-[1.75] ta:text-[15.5px]')}>
-        {paragraphs.map((p, i) => (
-          <p key={i} className="whitespace-pre-line">
-            {p}
-          </p>
-        ))}
-      </div>
+      <Prose text={text} className={big ? 'text-[20px] leading-[1.7] ta:text-[18px]' : 'text-[17px] leading-[1.75] ta:text-[15.5px]'} />
     </section>
   )
 }

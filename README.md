@@ -21,7 +21,7 @@ frontend/         React + Tailwind (Vite)
   src/pages/detail/   DetailDesktop · DetailMobile
   src/pages/editor/   EditorPage (desktop)
   src/pages/admin/    hidden /admin sign-in
-infra/            CDK: DynamoDB, S3, Lambda, CloudFront
+infra/            CDK: DynamoDB, S3, Lambda + HTTP API, CloudFront
 ```
 
 ## Data

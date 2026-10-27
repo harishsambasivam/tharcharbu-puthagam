@@ -8,9 +8,10 @@ import { Card, Kicker, Label, Loading, cx, lineInput } from '../../components/ui
 import { resolveLinks, useCatalog, useItem } from '../../api/queries'
 import EditorBar from '../editor/EditorBar'
 import PhotoUploader from '../editor/PhotoUploader'
-import { FieldError, Pair } from '../editor/Fields'
+import { FieldError, RichTextField, TA_PLACEHOLDER } from '../editor/Fields'
 import { LinkSearch } from '../editor/LinksEditor'
 import { useDraft } from '../editor/useDraft'
+import { useApp } from '../../store/useApp'
 
 const blankText = () => ({ title: '', summary: '', body: '', photos: [] })
 const toForm = (item = {}) => ({
@@ -33,7 +34,9 @@ export default function ArticleEditorPage() {
 function Editor({ item }) {
   const form = useForm({ defaultValues: toForm(item), resolver: zodResolver(publishSchema) })
   const { meta, saveState, error, ensureId, publish, unpublish, leave } = useDraft({ route: 'articles', item, form, listPath: '/articles' })
-  const title = form.watch('en.title')
+  // Written one language at a time, following the header's language toggle.
+  const lang = useApp((s) => s.lang)
+  const title = form.watch(`${lang}.title`) || form.watch('en.title')
 
   return (
     <FormProvider {...form}>
@@ -50,19 +53,19 @@ function Editor({ item }) {
       {/* Laid out like the reading page: title and summary, cover, then the text. */}
       <form onSubmit={(e) => e.preventDefault()} className="mx-auto max-w-[1100px] space-y-10 px-10 pb-20 pt-8">
         {error && <p className="rounded-md border border-[#b4472e]/40 px-4 py-2.5 text-[13px] text-[#b4472e]">{error}</p>}
-        <section>
-          <div className="grid grid-cols-2 gap-3">
-            <Label>English</Label>
-            <Label>தமிழ்</Label>
-          </div>
-          <Pair en="en.title" ta="ta.title" placeholder="Title" className={cx(lineInput, 'mt-2 font-serif text-[34px] leading-tight')} />
+        {/* Keyed by language so each input opens with its own text. */}
+        <section key={lang}>
+          <Label>{lang === 'ta' ? 'தமிழ்' : 'English'} · switch with the language button</Label>
+          <input
+            {...form.register(`${lang}.title`)}
+            placeholder={lang === 'ta' ? `தலைப்பு (${TA_PLACEHOLDER})` : 'Title'}
+            className={cx(lineInput, 'mt-2 font-serif text-[34px] leading-tight')}
+          />
           <FieldError name="en.title" />
-          <Pair
-            as="textarea"
-            en="en.summary"
-            ta="ta.summary"
+          <textarea
+            {...form.register(`${lang}.summary`)}
             rows={3}
-            placeholder="A line or two that sums it up, shown in lists and under the title"
+            placeholder={lang === 'ta' ? `சுருக்கம் (${TA_PLACEHOLDER})` : 'A line or two that sums it up, shown in lists and under the title'}
             className={cx(lineInput, 'mt-5 resize-y text-[17px] leading-relaxed text-ink-2')}
           />
         </section>
@@ -77,17 +80,10 @@ function Editor({ item }) {
         </section>
 
         <section>
-          <Kicker className="mb-3" sub="blank lines start a new paragraph">
+          <Kicker className="mb-3" sub="select text to format · start a new line to add images · drag a block by its grip to move it">
             Article
           </Kicker>
-          <Pair
-            as="textarea"
-            en="en.body"
-            ta="ta.body"
-            rows={22}
-            placeholder="Write the article"
-            className={cx(lineInput, 'resize-y font-serif text-[17px] leading-[1.75]')}
-          />
+          <RichTextField name="body" kind="article" lang={lang} ensureId={ensureId} placeholder="Tell your story…" className="text-[20px] leading-[1.75]" />
         </section>
 
         <MentionsField />

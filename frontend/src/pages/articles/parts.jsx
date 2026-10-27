@@ -25,12 +25,6 @@ export function useArticleDate() {
   }
 }
 
-export const paragraphs = (text = '') =>
-  text
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-
 export const Cover = ({ article, className }) => <Photo photo={article.photos?.[0]} className={cx('w-full', className)} />
 
 // One article in a list: cover, date, title and summary. `size` sets how much room it takes.

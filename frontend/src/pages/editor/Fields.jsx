@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { useFieldArray, useFormContext } from 'react-hook-form'
 import { Check, Pencil, Plus, X } from 'lucide-react'
 import { Button, Card, Kicker, Label, Popover, Select, cx, lineInput } from '../../components/ui'
@@ -7,6 +7,10 @@ import { KeyIcon, hasKeyIcon } from '../../components/Icons'
 import { optionsIn, useTagLists } from '../../config/master'
 import { PILL_TONES } from '../../config/seasons'
 import { blankStage } from './form'
+import { uploadPhoto } from '../../api/client'
+
+// Loaded only when an editor opens, keeping it out of the reading pages' bundle.
+const RichEditor = lazy(() => import('../../components/RichEditor'))
 
 // Form pieces for the editor. They all read the form from context.
 export function FieldError({ name }) {
@@ -356,24 +360,54 @@ export function LifeCycleField() {
   )
 }
 
-export function ArticleField() {
+// Long-form text in the Medium-style editor, one language at a time. Images upload under the item's id.
+// Pass `lang` to follow the header's language toggle instead of showing English / Tamil tabs.
+export function RichTextField({ name, kind, ensureId, placeholder, className, lang: fixedLang }) {
+  const { watch, setValue } = useFormContext()
+  const [picked, setLang] = useState('en')
+  const lang = fixedLang || picked
+  const upload = async (file) => uploadPhoto(kind, await ensureId(), file)
+  return (
+    <div>
+      {!fixedLang && (
+        <div className="mb-6 flex gap-1 border-b border-line">
+          {[
+            ['en', 'English'],
+            ['ta', 'தமிழ்'],
+          ].map(([code, label]) => (
+            <button
+              key={code}
+              type="button"
+              onClick={() => setLang(code)}
+              className={cx('-mb-px border-b-2 px-3 pb-2 text-[13px] font-semibold', lang === code ? 'border-ink text-ink' : 'border-transparent text-ink-2 hover:text-ink')}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+      {/* Keyed by language so each opens with its own text. */}
+      <Suspense fallback={<div className="min-h-[12rem]" />}>
+        <RichEditor
+          key={lang}
+          value={watch(`${lang}.${name}`)}
+          onChange={(md) => setValue(`${lang}.${name}`, md, { shouldDirty: true })}
+          onUpload={upload}
+          placeholder={lang === 'en' ? placeholder : TA_PLACEHOLDER}
+          className={className}
+        />
+      </Suspense>
+    </div>
+  )
+}
+
+export function ArticleField({ kind, ensureId }) {
   return (
     <section>
-      <Kicker className="mb-3" sub="blank lines start a new paragraph">
+      <Kicker className="mb-3" sub="select text to format · start a new line to add images · drag a block by its grip to move it">
         In depth
       </Kicker>
-      <div className="grid grid-cols-2 gap-3">
-        <Label>English</Label>
-        <Label>தமிழ்</Label>
-      </div>
-      <Pair
-        as="textarea"
-        en="en.article"
-        ta="ta.article"
-        rows={14}
-        placeholder="Write about this in depth"
-        className={cx(lineInput, 'mt-2 resize-y font-serif text-[16.5px] leading-[1.7]')}
-      />
+      <RichTextField name="article" kind={kind} ensureId={ensureId} placeholder="Write about this in depth…" className="text-[19px] leading-[1.75]" />
     </section>
   )
 }

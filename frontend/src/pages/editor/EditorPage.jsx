@@ -127,7 +127,7 @@ function Editor({ cfg, item }) {
           <LinksEditor cfg={cfg} id={meta.id} ensureId={ensureId} />
         </div>
         <div className="mt-11">
-          <ArticleField />
+          <ArticleField kind={cfg.kind} ensureId={ensureId} />
         </div>
       </form>
     </FormProvider>
